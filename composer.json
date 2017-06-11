@@ -1,0 +1,7 @@
+{
+    "name": "neco",
+    "description": "neco",
+    "require": {
+        "rmccue/requests": ">=1.0"
+    }
+}

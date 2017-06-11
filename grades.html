@@ -1,0 +1,109 @@
+<!doctype html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="material.min.css">
+    <link rel="stylesheet>" href="dialog-polyfill.css">
+    <script src="dialog-polyfill.js"></script>
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+    <style>
+        td:hover{
+            background-color: #e3e3e3;
+        }
+    </style>
+</head>
+<body>
+    <dialog class="mdl-dialog" id="subjectDialog">
+        <h6 class="mdl-dialog__title"></h6>
+        <div class="mdl-dialog__content"></div>
+        <div class="mdl-dialog__actions">
+            <button class="mdl-button">Close</button>
+        </div>
+    </dialog>
+    <dialog class="mdl-dialog" id="gradeDialog">
+        <button class="mdl-button">Close</button>
+    </dialog>
+    <script src="https://is.sps-prosek.cz/script/jsbn.js"></script>
+    <script src="https://is.sps-prosek.cz/script/prng4.js"></script>
+    <script src="https://is.sps-prosek.cz/script/rng.js"></script>
+    <script src="https://is.sps-prosek.cz/script/rsa.js"></script>
+    <script>
+        var data;
+        var key = new RSAKey();
+        var xhttp = new XMLHttpRequest();
+        var subjectDialog = document.querySelector("#subjectDialog");
+        if(!subjectDialog.showModal){
+            dialogPolyfill.registerDialog(subjectDialog); 
+        }
+        var gradeDialog = document.querySelector("#gradeDialog");
+        if(!gradeDialog.showModal){
+            dialogPolyfill.registerDialog(gradeDialog); 
+        }
+        document.querySelector("#subjectDialog .mdl-button").onclick = function() {
+            subjectDialog.close();
+        }        
+        xhttp.onreadystatechange = function(){
+            if(this.readyState == 4){
+                var info = JSON.parse(this.responseText);
+                key.setPublic(info.n, info.e);
+                var gradesRequest = new XMLHttpRequest();
+                gradesRequest.onreadystatechange = function(){
+                    if(this.readyState == 4){
+                        var container = document.createElement("table");
+                        container.className = "mdl-data-table mdl-js-data-table";
+                        container.id = "subject-container";
+                        data = JSON.parse(this.responseText);
+                        for(i = 0; i < data.DATA.length-1; i++){
+                            var row = document.createElement("tr");
+                            container.appendChild(row);
+                            var name = document.createElement("td");
+                            name.setAttribute("id", "s"+i);
+                            var tooltip = document.createElement("div");
+                            tooltip.classList.add("mdl-tooltip");
+                            tooltip.setAttribute("for", name.id);
+                            tooltip.innerHTML = "Průměr za 1. pololetí: "+data.DATA[i].AVERAGE1+"<br>"+
+                                "Průměr za 2. pololetí: "+data.DATA[i].AVERAGE2;
+                            var subject = data.DATA[i];
+                            name.subject = subject;
+                            name.className = "mdl-data-table__cell--non-numeric";
+                            row.appendChild(name);
+                            row.appendChild(tooltip);
+                            name.textContent = data.DATA[i].SUBJECT;
+                            for(j = 0; j < data.DATA[i].CLASSIFICATION.length-1; j++){
+                                var grade = document.createElement("td");
+                                grade.setAttribute("id", "g"+i+"-"+j);
+                                var tooltip = document.createElement("div");
+                                tooltip.setAttribute("for", grade.id);
+                                tooltip.classList.add("mdl-tooltip")
+                                tooltip.innerHTML =
+                                    data.DATA[i].DATE[j]+"<br>"+
+                                    "váha: "+data.DATA[i].TVALUE[j]+"<br>"+
+                                    "téma: "+data.DATA[i].TOPIC[j]+"<br>"+
+                                    "poznámka: "+data.DATA[i].TEXT[j];
+
+                                if(data.DATA[i].NEW[j]){
+                                    grade.style.backgroundColor = "#00c853";
+                                }
+                                grade.className = "mdl-data-table__cell--non-numeric";
+                                grade.textContent = data.DATA[i].CLASSIFICATION[j];
+                                row.appendChild(grade);
+                                row.appendChild(tooltip);
+                            }
+                        }
+                        document.body.appendChild(container);
+                        componentHandler.upgradeDom();
+                    }
+                }
+                gradesRequest.open("POST", "api.php", true);
+                gradesRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                gradesRequest.send("request="+JSON.stringify({ "type": "classification", "data": { "type": "student" }, "function": key.encrypt("myclassification") }));
+            }
+        };
+        xhttp.open("POST", "api.php", true);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttp.send("request="+JSON.stringify({ "type": "RSAInfo" }));
+    </script>
+</body>
+</html>
