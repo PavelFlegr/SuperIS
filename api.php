@@ -37,6 +37,9 @@ function Login($request) {
     if($info->STATUS == true){
         header("Location: grades.html");
     }
+    else {
+        header("Location: /");
+    }
 }
 
 function GetClassification($request){

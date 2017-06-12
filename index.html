@@ -18,7 +18,7 @@
         <form>
             <div>
                 <div class="mdl-textfield mdl-js-textfield">
-                    <input class="mdl-textfield__input" type="text" id="name"/>
+                    <input class="mdl-textfield__input" type="text" id="name" autofocus/>
                     <label class="mdl-textfield__label" for="name">Username</label>
                 </div>
             </div>
@@ -40,12 +40,19 @@
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function(){
             if(this.readyState == 4){
-                console.log(this.responseText);
                 var info = JSON.parse(this.responseText);
                 key.setPublic(info.n, info.e);
             }
         };
-
+        function handleKeypress(e){
+            if(e.keyCode == 13){
+                login();
+            }
+        }
+        var inputs = document.querySelectorAll("form input");
+        for(var i = 0; i < inputs.length; i++ ){
+            inputs[i].onkeyup = handleKeypress;
+        }
         function addParam(name, value){
             var input = document.createElement("input");
             input.type = "hidden";
@@ -53,7 +60,7 @@
             input.setAttribute("value", value);
             this.appendChild(input);
         }
-
+        
         xhttp.open("POST", "api.php", true);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhttp.send("request="+JSON.stringify({ "type": "RSAInfo" }));
@@ -71,7 +78,6 @@
                     },
                 "function": key.encrypt("userlogin")
                 });
-            request.replace("\n", "\\n");
             form.addParam("request", request);
             
             document.body.appendChild(form);
