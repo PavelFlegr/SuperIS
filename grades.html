@@ -9,6 +9,9 @@
     <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
     <style>
+        body {
+            width: 150%;
+        }
         td:hover{
             background-color: #e3e3e3;
         }
@@ -41,15 +44,6 @@
     <script src="https://is.sps-prosek.cz/script/rng.js"></script>
     <script src="https://is.sps-prosek.cz/script/rsa.js"></script>
     <script>
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function(){
-            if(this.readyState == 4){
-                        
-            }
-        }
-        xhttp.open("POST", "api.php", true);
-                xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-                xhttp.send("request="+JSON.stringify({ "type": "classification" }));
         var data;
         var key = new RSAKey();
         var xhttp = new XMLHttpRequest();      
@@ -61,6 +55,7 @@
                 gradesRequest.onreadystatechange = function(){
                     if(this.readyState == 4){
                         data = JSON.parse(this.responseText);
+                        var start =document.querySelector("#start");
                         if(data.STATUS == false){
                             document.location = "/";
                             return;
